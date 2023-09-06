@@ -32,7 +32,7 @@ content_type find_content_type(char* fn) {
 int parse_requested_file(char* buff, char* fn) {
     // Parse name of requested file from HTTP-request
 
-    int idx = 5; // "GET /"
+    int idx = 5; // "GET /" TODO !!
     int fn_idx = 0;
     fn[fn_idx] = 0;
     while (buff[idx] >= 33 & buff[idx] <= 126) {

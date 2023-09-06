@@ -1,14 +1,8 @@
-#include <stdbool.h>
-#include <signal.h>
-#include <string.h>
 #include <stdio.h>
-#include <poll.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 
 #include <server.h>
 #include <respond.h>
@@ -97,6 +91,7 @@ int main(int argc, char *argv[])  {
 
     if (argc > 2) {
         // Assume this is PORT
+        // TODO: catch error
         port = atoi(argv[2]);
     }
     server(port, argv[1]);
