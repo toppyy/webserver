@@ -1,9 +1,9 @@
-IDIR =../include
+IDIR =./include
 CC=gcc
 CFLAGS=-I$(IDIR)
 
-ODIR=../obj
-LDIR =../lib
+ODIR=./obj
+LDIR =./lib
 LIBS=-lm
 
 _DEPS = server.h respond.h
