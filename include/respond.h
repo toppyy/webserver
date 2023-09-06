@@ -1,1 +1,1 @@
-void respond(int recvd, char* buff, int cfd);
+void respond(int recvd, char* buff, int cfd, char* root);

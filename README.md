@@ -2,6 +2,10 @@
 
 Socket-programming practices. A web server that can return static files (responding to simple GET-requests). 
 
-To start the server:
+To serve files from "./public/", use:
 
-    cd src && make && ./server s
+    cd src && make && ./server ./public/
+
+You can specify a port (defaults to 3000):
+
+    ./server ./public/ 8000

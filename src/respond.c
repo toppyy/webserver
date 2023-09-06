@@ -151,7 +151,7 @@ void respond(int recvd, char* buff, int cfd, char* root) {
 
     memset(&req_fn, 0, REQFNBUFF);
 
-    int  root_size      = sizeof(root) - 1; // -1 'cause null terminated
+    int  root_size      = strlen(root);
     memcpy(req_fn, root, root_size);        // Init requested file path with 'root'
 
     char std[11]         = "index.html";
