@@ -3,28 +3,45 @@
 #include<parse.h>
 
 content_type find_content_type(char* fn) {
-    int i       = sizeof(fn) - 1;
+    int i       = strlen(fn) - 1;
     char file_extension[100];
+    memset(file_extension, 0, 100);
 
-    while (fn[i--] !=  '.' & i >= 0) {};
+
+    while (fn[--i] !=  '.' & i >= 0) {};
 
     if (i < 0) {
         return UNKNOWN;
     }
 
-    int idx = 0;
-    while (fn[i] != 0) {
-        file_extension[idx++] = fn[i];
-        i++;
-    }
+    memcpy(file_extension, fn + i + 1, strlen(fn) - i);
 
     if (strcmp(file_extension, "html") == 0) {
         return HTML;
     }
 
+    if (strcmp(file_extension, "js") == 0) {
+        return JAVASCRIPT;
+    }
+
     if (strcmp(file_extension, "png") == 0) {
         return IMG_PNG;
     }
+
+    if (strcmp(file_extension, "gif") == 0) {
+        return IMG_GIF;
+    }
+
+    if (strcmp(file_extension, "jpeg") == 0) {
+        return IMG_JPEG;
+    }
+
+    if (strcmp(file_extension, "jpg") == 0) {
+        return IMG_JPEG;
+    }
+
+
+    return UNKNOWN;
 
 }
 

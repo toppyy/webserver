@@ -20,6 +20,7 @@ int addCRLF(char* str) {
     return 2;
 }
 
+
 int set_header_content_type(char* msg, content_type ct) {
 
     char *msg_start = msg;
@@ -27,14 +28,39 @@ int set_header_content_type(char* msg, content_type ct) {
     memcpy(msg, "Content-Type: ", 14);
     msg += 14;
 
-    if (ct == IMG_PNG) {
-        memcpy(msg, "image/png", 9);
-        msg += 9;
-    } else {
-        // Resort to def: (content_type == HTML | content_type == UNKNOWN)
-        memcpy(msg, "text/html", 9);
-        msg += 9;
-    }
+    printf("ct: %d\n", ct);
+
+    switch(ct) {
+
+        case HTML:
+            memcpy(msg, "text/html", 9);
+            msg += 9;
+            break;
+
+        case IMG_PNG:
+            memcpy(msg, "image/png", 9);
+            msg += 9;
+            break;
+
+        case IMG_GIF:
+            memcpy(msg, "image/gif", 9);
+            msg += 9;
+            break;
+
+        case IMG_JPEG:
+            memcpy(msg, "image/jpeg", 10);
+            msg += 10;
+            break;
+
+        case JAVASCRIPT:
+            memcpy(msg, "text/javascript", 15);
+            msg += 15;
+            break;
+
+        default:
+            memcpy(msg, "text/plain", 10);
+            msg += 10;
+    }   
 
     msg += addCRLF(msg);
     return msg - msg_start;

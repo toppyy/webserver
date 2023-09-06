@@ -3,6 +3,9 @@
 typedef enum  {
     UNKNOWN = 1,
     HTML,
+    JAVASCRIPT,
+    IMG_JPEG,
+    IMG_GIF,
     IMG_PNG
 } content_type;
 
