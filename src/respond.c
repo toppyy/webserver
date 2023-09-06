@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <respond.h>
+#include <parse.h>
 
 #define MSGBUFF     50000
 #define REQFNBUFF   50
@@ -13,73 +14,24 @@
 #define RESPONSE404LEN 51
 
 
-typedef enum {
-    UNKNOWN = 1,
-    HTML,
-    IMG_PNG
-} ContentType;
-
-
-ContentType find_content_type(char* fn) {
-    int i       = sizeof(fn) - 1;
-    char file_extension[100];
-
-    while (fn[i--] !=  '.' & i >= 0) {};
-
-    if (i < 0) {
-        return UNKNOWN;
-    }
-
-    int idx = 0;
-    while (fn[i] != 0) {
-        file_extension[idx++] = fn[i];
-        i++;
-    }
-
-    if (strcmp(file_extension, "html") == 0) {
-        return HTML;
-    }
-
-    if (strcmp(file_extension, "png") == 0) {
-        return IMG_PNG;
-    }
-
-}
-
-
 int addCRLF(char* str) {
     str[0] = 13;    // CR
     str[1] = 10;    // LF
     return 2;
 }
 
-int parse_requested_file(char* buff, char* fn) {
-    // Parse name of requested file from HTTP-request
-
-    int idx = 5; // "GET /"
-    int fn_idx = 0;
-    fn[fn_idx] = 0;
-    while (buff[idx] >= 33 & buff[idx] <= 126) {
-        fn[fn_idx] = buff[idx];
-        fn_idx++;
-        idx++;
-    }
-    fn[fn_idx + 1] =  0;
-    return fn_idx;
-}
-
-int set_header_content_type(char* msg, ContentType content_type) {
+int set_header_content_type(char* msg, content_type ct) {
 
     char *msg_start = msg;
     
     memcpy(msg, "Content-Type: ", 14);
     msg += 14;
 
-    if (content_type == IMG_PNG) {
+    if (ct == IMG_PNG) {
         memcpy(msg, "image/png", 9);
         msg += 9;
     } else {
-        // Resort to default: (content_type == HTML | content_type == UNKNOWN)
+        // Resort to def: (content_type == HTML | content_type == UNKNOWN)
         memcpy(msg, "text/html", 9);
         msg += 9;
     }
@@ -129,7 +81,7 @@ int add_data(char* msg, char* data, int size) {
 }
 
 
-void log_request_info(char* buff, int recvd, char* req_fn) {
+void log_request_info(char* buff, int recvd, char* res_fn) {
     // Print method
     int idx = 0;
     while (buff[idx] != '/' & idx < recvd) {
@@ -137,44 +89,41 @@ void log_request_info(char* buff, int recvd, char* req_fn) {
         idx++;
     }
     // Print requested file
-    printf(": %s\n", req_fn);
+    printf(": %s\n", res_fn);
 }
 
 
-void respond(int recvd, char* buff, int cfd, char* root) {
+void respond(int recvd, request req, int cfd, char* root) {
 
      // init response datastructures
     char msg[MSGBUFF];
     char* msg_end = msg;
-    char req_fn[REQFNBUFF];
+    char res_fn[REQFNBUFF];
 
 
-    memset(&req_fn, 0, REQFNBUFF);
+    memset(&res_fn, 0, REQFNBUFF);
 
     int  root_size      = strlen(root);
-    memcpy(req_fn, root, root_size);        // Init requested file path with 'root'
+    memcpy(res_fn, root, root_size);        // Init requested file path with 'root'
 
-    char std[11]         = "index.html";
-    int  std_size       = sizeof(std);
-    int  bytes_to_send  = 0;
-    int  req_fn_size    = 0;
-    int  fd             = -1;
-
-
+    char def[11]        = "index.html";
+    int  def_size       = sizeof(def);
+    int  bytes_to_send      = 0;
+    int  res_fn_size        = 0;
+    int  fd                 = -1;
 
     // If there's no bytes received, don't try to parse the msg - just 404
     if (recvd > 0) {
 
-        // Parse requested file and log request
-        req_fn_size = parse_requested_file(buff, req_fn + root_size);
-        log_request_info(buff, recvd, req_fn);
-
-        // If no specific file was requested, return file specified as 'std'
-        if (req_fn_size == 0) {
-            memcpy(req_fn + root_size, std, std_size);
+        // Add name of requested file (or def) to path
+        if (req.filename_size > 0) {
+            memcpy(res_fn + root_size, req.filename, req.filename_size);
+        } else {
+            // If no specific file was requested, return file specified as 'def'
+            memcpy(res_fn + root_size, def, def_size);
         }
-        // Try to open the file at path req_fn
-        fd = open(req_fn, O_RDONLY);
+        // Try to open the file at path res_fn
+        fd = open(res_fn, O_RDONLY);
 
     }
    
@@ -185,7 +134,7 @@ void respond(int recvd, char* buff, int cfd, char* root) {
         msg_end += add_data(msg_end, RESPONSE404, RESPONSE404LEN );
     } else {
         msg_end += set_status_200(msg_end);
-        msg_end += set_header_content_type(msg_end, find_content_type(req_fn));
+        msg_end += set_header_content_type(msg_end, req.ct);
         msg_end += addCRLF(msg_end);
         msg_end += add_data_from_file(msg_end, fd);
         close(fd);

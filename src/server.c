@@ -4,13 +4,16 @@
 #include <stdio.h>
 #include <poll.h>
 #include <stdlib.h>
-#include <server.h>
-#include <respond.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+
+#include <server.h>
+#include <respond.h>
+#include <parse.h>
+
 
 #define LISTEN_BACKLOG 100
 #define BUFFSIZE 500
@@ -65,7 +68,7 @@ void server(int port, char* path) {
         // Receive message  
         int recvd = recv(cfd, &buff, BUFFSIZE, 0);
 
-        respond(recvd, buff, cfd, path);
+        respond(recvd, parse_request(buff, recvd), cfd, path);
 
         if (close(cfd) == -1) {
             printf("Failed to close filehandle cfd");
