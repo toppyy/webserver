@@ -107,22 +107,10 @@ int add_data(char* msg, char* data, int size) {
 }
 
 
-void log_request_info(char* buff, int recvd, char* res_fn) {
-    // Print method
-    int idx = 0;
-    while (buff[idx] != '/' & idx < recvd) {
-        printf("%c", buff[idx]);
-        idx++;
-    }
-    // Print requested file
-    printf(": %s\n", res_fn);
-}
-
-
 void respond(int recvd, request req, int cfd, char* root) {
 
      // init response datastructures
-    char msg[MSGBUFF];
+    char msg[MSGBUFF]; // TODO: malloc
     char* msg_end = msg;
     char res_fn[REQFNBUFF];
 
