@@ -15,7 +15,7 @@
 #define LISTEN_BACKLOG 100
 #define BUFFSIZE 500
 
-void server(int port) {    
+void server(int port, char* path) {    
     // define file descriptors and other datastrucrures
     int                 sfd, cfd;
     socklen_t           peer_addr_size;
@@ -50,8 +50,6 @@ void server(int port) {
     }
     printf("Listening to port %d\n", port);
 
-    char exitmsg[5] = "EXIT";
-
     while (1) {
         // Accept connection        
         printf("Accepting connections..\n");
@@ -67,12 +65,7 @@ void server(int port) {
         // Receive message  
         int recvd = recv(cfd, &buff, BUFFSIZE, 0);
 
-        if (strcmp(buff,exitmsg) == 0) {
-            close(cfd);
-            break;
-        }
-
-        respond(recvd, buff, cfd);
+        respond(recvd, buff, cfd, path);
 
         if (close(cfd) == -1) {
             printf("Failed to close filehandle cfd");
@@ -89,3 +82,19 @@ void server(int port) {
     printf("Exited gracefully (closing socket)\n");
 }
 
+
+
+int main(int argc, char *argv[])  {
+    if (argc <= 1) {
+        printf("Specify a path to serve files from\n");
+        return 0;
+    }
+
+    int port = 3000;
+
+    if (argc > 2) {
+        // Assume this is PORT
+        port = atoi(argv[2]);
+    }
+    server(port, argv[1]);
+}

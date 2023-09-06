@@ -6,10 +6,10 @@ ODIR=../obj
 LDIR =../lib
 LIBS=-lm
 
-_DEPS = server.h client.h factory.h respond.h
+_DEPS = server.h respond.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = server.o client.o factory.o respond.o
+_OBJ = server.o respond.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
