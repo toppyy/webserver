@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
@@ -7,8 +9,8 @@
 #include <respond.h>
 #include <parse.h>
 
-#define MSGBUFF     50000
-#define REQFNBUFF   50
+#define HEADERSIZE  100 // Bytes allocated for header
+#define REQFNBUFF   500 // Bytes allocated for filename
 
 #define RESPONSE404 "<html><body>404 - Nothing here, sorry</body></html>"
 #define RESPONSE404LEN 51
@@ -27,8 +29,6 @@ int set_header_content_type(char* msg, content_type ct) {
     
     memcpy(msg, "Content-Type: ", 14);
     msg += 14;
-
-    printf("ct: %d\n", ct);
 
     switch(ct) {
 
@@ -109,12 +109,8 @@ int add_data(char* msg, char* data, int size) {
 
 void respond(int recvd, request req, int cfd, char* root) {
 
-     // init response datastructures
-    char msg[MSGBUFF]; // TODO: malloc
-    char* msg_end = msg;
+    // String containing the filename requested (appended to root)
     char res_fn[REQFNBUFF];
-
-
     memset(&res_fn, 0, REQFNBUFF);
 
     int  root_size      = strlen(root);
@@ -140,13 +136,28 @@ void respond(int recvd, request req, int cfd, char* root) {
         fd = open(res_fn, O_RDONLY);
 
     }
-   
+
+    char* msg;
+    char* msg_end;
+    
     if (fd == -1) {
+        // Requested file (nor index.html) not found
+        msg = malloc(HEADERSIZE);
+        memset(msg, 0, HEADERSIZE);
+        msg_end = msg;
+
         msg_end += set_status_404(msg_end);
         msg_end += set_header_content_type(msg_end, HTML);
         msg_end += addCRLF(msg_end);
         msg_end += add_data(msg_end, RESPONSE404, RESPONSE404LEN );
     } else {
+        // Requested file found. Count size, allocate memory for and send it
+        struct stat sb;
+        fstat(fd, &sb);
+
+        msg = malloc(sb.st_size + HEADERSIZE); // Size of file + bytes for header
+        msg_end = msg;
+        
         msg_end += set_status_200(msg_end);
         msg_end += set_header_content_type(msg_end, req.ct);
         msg_end += addCRLF(msg_end);
@@ -154,8 +165,11 @@ void respond(int recvd, request req, int cfd, char* root) {
         close(fd);
     }
 
+
     // Send it 
     int bytes_sent = send(cfd, msg, msg_end - msg, 0);
     printf("Sent %ld bytes\n", msg_end - msg);
+    
+    free(msg);
 
 }
