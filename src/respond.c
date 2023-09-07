@@ -118,6 +118,7 @@ void respond(int recvd, request req, int cfd, char* root) {
 
     char def[11]        = "index.html";
     int  def_size       = sizeof(def);
+    content_type def_ct = HTML;
     int  bytes_to_send      = 0;
     int  res_fn_size        = 0;
     int  fd                 = -1;
@@ -131,6 +132,8 @@ void respond(int recvd, request req, int cfd, char* root) {
         } else {
             // If no specific file was requested, return file specified as 'def'
             memcpy(res_fn + root_size, def, def_size);
+            req.ct = def_ct; // Default content-type is HTML. Set here 'cause it cannot be inferred from filename (as none was requested)
+
         }
         // Try to open the file at path res_fn
         fd = open(res_fn, O_RDONLY);
