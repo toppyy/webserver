@@ -1,5 +1,7 @@
 #pragma once
 
+#define FILENAMEMAX 500
+
 typedef enum  {
     UNKNOWN = 1,
     HTML,
@@ -12,7 +14,7 @@ typedef enum  {
 
 typedef struct request {
     content_type ct;
-    char* filename;
+    char filename[FILENAMEMAX];
     int filename_size;
 }   request;
 
