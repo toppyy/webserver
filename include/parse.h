@@ -17,3 +17,5 @@ typedef struct request {
 }   request;
 
 request parse_request(char *buff, int recvd);
+
+content_type find_content_type(char* fn);
