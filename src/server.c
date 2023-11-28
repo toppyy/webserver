@@ -12,7 +12,7 @@
 #define LISTEN_BACKLOG 100
 #define BUFFSIZE 500
 
-void server(int port, char* path) {    
+void server(int port, char* path) {
     // define file descriptors and other datastrucrures
     int                 sfd, cfd;
     socklen_t           peer_addr_size;

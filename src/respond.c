@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <math.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -66,6 +67,23 @@ int set_header_content_type(char* msg, content_type ct) {
     return msg - msg_start;
 }
 
+int set_header_content_length(char* msg, int content_length) {
+    char *msg_start = msg;
+    
+    memcpy(msg, "Content-Length: ", 16);
+    msg += 16;
+
+    int number_len = (int)((ceil(log10(content_length)))*sizeof(char));
+
+    char snum[number_len];
+    sprintf(snum, "%d", content_length);
+    memcpy(msg, snum, number_len);
+    msg += number_len;
+
+    msg += addCRLF(msg);
+    return msg - msg_start;
+
+}
 
 int set_status_200(char* msg) {
     // Status 200
@@ -118,7 +136,6 @@ void respond(int recvd, request req, int cfd, char* root) {
 
     char def[11]        = "index.html";
     int  def_size       = sizeof(def);
-    content_type def_ct = HTML;
     int  bytes_to_send      = 0;
     int  res_fn_size        = 0;
     int  fd                 = -1;
@@ -132,8 +149,7 @@ void respond(int recvd, request req, int cfd, char* root) {
         } else {
             // If no specific file was requested, return file specified as 'def'
             memcpy(res_fn + root_size, def, def_size);
-            req.ct = def_ct; // Default content-type is HTML. Set here 'cause it cannot be inferred from filename (as none was requested)
-
+            req.ct = find_content_type(def);
         }
         // Try to open the file at path res_fn
         fd = open(res_fn, O_RDONLY);
@@ -163,6 +179,7 @@ void respond(int recvd, request req, int cfd, char* root) {
         
         msg_end += set_status_200(msg_end);
         msg_end += set_header_content_type(msg_end, req.ct);
+        msg_end += set_header_content_length(msg_end, sb.st_size);
         msg_end += addCRLF(msg_end);
         msg_end += add_data_from_file(msg_end, fd);
         close(fd);
